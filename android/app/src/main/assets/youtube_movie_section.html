@@ -567,6 +567,34 @@
       display: block;
     }
 
+    /* RED BORDER UNTOUCH SHIELDS: Top-Left (Avatar, Title, Channel, Speaker) and Bottom (Link, Shelf, YouTube Logo) */
+    .untouch-shield-top-left {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: calc(100% - 96px);
+      height: 52px;
+      z-index: 20;
+      background: transparent;
+      pointer-events: auto;
+      user-select: none;
+      -webkit-user-select: none;
+      cursor: default;
+    }
+    .untouch-shield-bottom {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 52px;
+      z-index: 20;
+      background: transparent;
+      pointer-events: auto;
+      user-select: none;
+      -webkit-user-select: none;
+      cursor: default;
+    }
+
     .mini-restore-controls-btn {
       position: absolute;
       bottom: 12px;
@@ -1533,6 +1561,12 @@
             referrerpolicy="strict-origin-when-cross-origin">
           </iframe>
 
+          <!-- UNTOUCH SHIELD 1: TOP-LEFT AREA (Channel Avatar, Video Title, Channel Name, Speaker Icon - Leaving CC & Gear open) -->
+          <div class="untouch-shield-top-left" id="untouchTopLeft" title="Protected Top Left Area"></div>
+
+          <!-- UNTOUCH SHIELD 2: BOTTOM AREA (Share/Link Icon, Recommendations Card, YouTube Logo) -->
+          <div class="untouch-shield-bottom" id="untouchBottom" title="Protected Bottom Area"></div>
+
           <!-- Floating button to restore bottom controls if hidden -->
           <button type="button" class="mini-restore-controls-btn" id="miniRestoreControlsBtn" onclick="resetControlsTimer(event)" style="display:none;" title="Show Player Controls">
             ⚙️ Controls
@@ -2226,6 +2260,18 @@
       if (lastStagePointer.width > 0 && lastStagePointer.x >= lastStagePointer.width - 140 && lastStagePointer.y <= 65) {
         showGearHideButton(true);
       }
+    });
+
+    // Setup Untouch Shields for Top-Left and Bottom (from un.jpg)
+    ['untouchTopLeft', 'untouchBottom'].forEach(function(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      ['click', 'touchstart', 'touchend', 'mousedown', 'mouseup', 'contextmenu'].forEach(function(evt) {
+        el.addEventListener(evt, function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }, { passive: false });
+      });
     });
 
     function hideControlsBar(e) {

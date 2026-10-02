@@ -1310,6 +1310,56 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
                   }}
                 />
 
+                {/* UNTOUCH SHIELD 1: TOP-LEFT AREA (Channel Avatar, Video Title, Channel Name, Speaker Icon - Leaving CC & Gear open) */}
+                <div
+                  className="absolute top-0 left-0 w-[calc(100%-96px)] h-12 sm:h-14 z-20 pointer-events-auto cursor-default select-none bg-transparent"
+                  title="Protected Top Left Area"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onTouchStart={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                  }}
+                />
+
+                {/* UNTOUCH SHIELD 2: BOTTOM AREA (Share/Link Icon, Recommendations Card, YouTube Logo) */}
+                <div
+                  className="absolute bottom-0 left-0 right-0 h-12 sm:h-14 z-20 pointer-events-auto cursor-default select-none bg-transparent"
+                  title="Protected Bottom Area"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onTouchStart={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                  }}
+                />
+
                 {/* Floating button to restore bottom controls if hidden */}
                 {!showControls && (
                   <button
