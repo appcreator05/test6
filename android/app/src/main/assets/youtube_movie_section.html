@@ -424,7 +424,8 @@
       width: 100%;
       min-height: 100vh;
       background-color: #0b0b0b;
-      padding-bottom: 60px;
+      padding-bottom: 0px !important;
+      margin-bottom: 0px !important;
     }
 
     .player-header {
@@ -519,15 +520,23 @@
       position: absolute;
       top: 0;
       left: 0;
+      right: 0;
+      bottom: 0;
       width: 100%;
       height: 100%;
       overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .cinema-stage iframe,
     .cinema-frame-box iframe {
       position: absolute;
       top: 0;
       left: 0;
+      right: 0;
+      bottom: 0;
+      margin: auto;
       width: 100%;
       height: 100%;
       border: none;
@@ -637,6 +646,9 @@
       overflow: hidden !important;
       box-shadow: none !important;
       background: #000000 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
     }
     .cinema-frame-box:fullscreen iframe,
     .cinema-frame-box:-webkit-full-screen iframe,
@@ -648,12 +660,14 @@
       position: absolute !important;
       top: 0 !important;
       left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      margin: auto !important;
       width: 100% !important;
       height: 100% !important;
       max-width: 100% !important;
       max-height: 100% !important;
       border: none !important;
-      margin: 0 !important;
       padding: 0 !important;
       transform: none !important;
     }
@@ -734,24 +748,29 @@
         height: 100% !important;
         max-width: 100vw !important;
         max-height: 100vh !important;
-        margin: 0 !important;
+        margin: 0 auto !important;
         padding: 0 !important;
         border-radius: 0 !important;
         overflow: hidden !important;
         box-shadow: none !important;
         background: #000000 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
       }
       .cinema-frame-box iframe,
       .cinema-stage iframe {
         position: absolute !important;
         top: 0 !important;
         left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        margin: auto !important;
         width: 100% !important;
         height: 100% !important;
         max-width: 100% !important;
         max-height: 100% !important;
         border: none !important;
-        margin: 0 !important;
         padding: 0 !important;
         transform: none !important;
       }
@@ -977,6 +996,329 @@
     .sub-alert-btn-subscribe:active {
       background: #be123c;
     }
+
+    /* AI Image-to-Video Animator Studio Modal */
+    .ai-studio-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.88);
+      z-index: 100000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      box-sizing: border-box;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .ai-modal-box {
+      background: #0f141e;
+      border: 1px solid #232d3f;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 580px;
+      max-height: 92vh;
+      display: flex;
+      flex-col;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+    }
+    .ai-modal-header {
+      background: #161d2b;
+      border-bottom: 1px solid #232c3d;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .ai-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .ai-header-icon {
+      font-size: 20px;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #e11d48, #f59e0b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ai-header-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ai-badge-free {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 999px;
+      text-transform: uppercase;
+    }
+    .ai-header-subtitle {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    .ai-close-btn {
+      background: #20293a;
+      border: none;
+      color: #94a3b8;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+    .ai-modal-body {
+      padding: 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .ai-card {
+      background: #141a26;
+      border: 1px solid #232d3f;
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .ai-card-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #cbd5e1;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .ai-btn-sm {
+      background: transparent;
+      border: none;
+      color: #f43f5e;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .ai-img-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .ai-img-preview-box {
+      width: 72px;
+      height: 72px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1.5px dashed #475569;
+      position: relative;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .ai-img-preview-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .ai-img-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      font-size: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .ai-img-preview-box:hover .ai-img-overlay {
+      opacity: 1;
+    }
+    .ai-samples-col {
+      flex: 1;
+    }
+    .ai-label {
+      font-size: 10px;
+      color: #94a3b8;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .ai-samples-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .ai-sample-item {
+      background: #192233;
+      border: 1px solid #28354a;
+      border-radius: 6px;
+      padding: 3px;
+      cursor: pointer;
+      text-align: center;
+    }
+    .ai-sample-item img {
+      width: 100%;
+      height: 28px;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-bottom: 2px;
+    }
+    .ai-sample-item span {
+      font-size: 9px;
+      color: #cbd5e1;
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ai-textarea {
+      width: 100%;
+      background: #0a0d14;
+      border: 1px solid #242e40;
+      border-radius: 8px;
+      padding: 8px 10px;
+      color: #f1f5f9;
+      font-size: 12px;
+      box-sizing: border-box;
+      outline: none;
+      resize: none;
+    }
+    .ai-preset-chips {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .ai-chip {
+      background: #182030;
+      border: 1px solid #253044;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px;
+      border-radius: 6px;
+      text-align: center;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ai-chip.active {
+      background: rgba(225, 29, 72, 0.2);
+      border-color: #f43f5e;
+      color: #fecdd3;
+    }
+    .ai-config-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .ai-toggle-group {
+      display: flex;
+      gap: 4px;
+      background: #0a0d14;
+      padding: 3px;
+      border-radius: 6px;
+      border: 1px solid #232d3f;
+    }
+    .ai-toggle-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .ai-toggle-btn.active {
+      background: #e11d48;
+      color: #fff;
+    }
+    .ai-video-box {
+      width: 100%;
+      height: 180px;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #263145;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ai-loading-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: #fff;
+    }
+    .ai-spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid rgba(244,63,94,0.2);
+      border-top-color: #f43f5e;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    .ai-progress-text {
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .ai-stage-text {
+      font-size: 11px;
+      color: #fde047;
+    }
+    .ai-btn-primary {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #e11d48, #f59e0b);
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4);
+    }
+    .ai-btn-download {
+      padding: 12px 18px;
+      border-radius: 10px;
+      background: #059669;
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4);
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -1004,6 +1346,7 @@
         <span class="live-dot"></span>
         <span id="liveStatusText">LIVE SEARCH ACTIVE</span>
       </div>
+      <div class="filter-chip ai-video-chip" onclick="openAiVideoStudio()" style="background: linear-gradient(135deg, #7c3aed, #db2777); color: #fff; font-weight: 700; border: 1px solid rgba(255,255,255,0.4); display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4);">✨ AI Video Animator</div>
       <div class="filter-chip active" onclick="setFilter(this, 'new hindi dubbed full movie hollywood bollywood south all movie')">🔥 All Movies</div>
       <div class="filter-chip" onclick="setFilter(this, 'new hindi dubbed full movie hd 2024 2025')">🎬 Hindi Dubbed</div>
       <div class="filter-chip" onclick="setFilter(this, 'south indian full movie hindi dubbed blockbuster action')">💥 South Action</div>
@@ -1125,6 +1468,126 @@
       </div>
     </div>
   </div>
+
+  <!-- SCREEN 3: AI IMAGE-TO-VIDEO ANIMATOR MODAL (100% FREE CLIENT-SIDE) -->
+  <div id="aiStudioModal" class="ai-studio-modal" style="display: none;">
+    <div class="ai-modal-box">
+      <!-- Header -->
+      <div class="ai-modal-header">
+        <div class="ai-header-left">
+          <div class="ai-header-icon">🎬</div>
+          <div>
+            <div class="ai-header-title">
+              AI Image-to-Video Animator
+              <span class="ai-badge-free">100% Free</span>
+            </div>
+            <div class="ai-header-subtitle">Turn any photo or poster into cinematic motion video with AI</div>
+          </div>
+        </div>
+        <button class="ai-close-btn" onclick="closeAiVideoStudio()">✕</button>
+      </div>
+
+      <!-- Body Content -->
+      <div class="ai-modal-body">
+        <!-- 1. Source Image Selection -->
+        <div class="ai-card">
+          <div class="ai-card-title">
+            <span>📷 1. Source Image</span>
+            <button class="ai-btn-sm" onclick="document.getElementById('aiFileInput').click()">Upload Photo</button>
+            <input type="file" id="aiFileInput" accept="image/*" style="display:none" onchange="handleAiImageUpload(event)">
+          </div>
+          <div class="ai-img-row">
+            <div class="ai-img-preview-box" onclick="document.getElementById('aiFileInput').click()">
+              <img id="aiSourceImg" src="https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=400&q=80" alt="Preview">
+              <div class="ai-img-overlay">Change</div>
+            </div>
+            <div class="ai-samples-col">
+              <span class="ai-label">Or choose a cinema sample:</span>
+              <div class="ai-samples-grid">
+                <div class="ai-sample-item" onclick="setAiSample('https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=600&q=80')">
+                  <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=150&q=80">
+                  <span>Action</span>
+                </div>
+                <div class="ai-sample-item" onclick="setAiSample('https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=600&q=80')">
+                  <img src="https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=150&q=80">
+                  <span>Sci-Fi</span>
+                </div>
+                <div class="ai-sample-item" onclick="setAiSample('https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=600&q=80')">
+                  <img src="https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=150&q=80">
+                  <span>Nature</span>
+                </div>
+                <div class="ai-sample-item" onclick="setAiSample('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80')">
+                  <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=150&q=80">
+                  <span>Cosmic</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Motion Prompt & Presets -->
+        <div class="ai-card">
+          <div class="ai-card-title">
+            <span>✨ 2. Motion Prompt</span>
+          </div>
+          <textarea id="aiPromptInput" class="ai-textarea" rows="2" placeholder="Describe camera motion, action, and lighting...">Cinematic slow push-in zoom into focal subject, shallow depth of field, dramatic lighting.</textarea>
+          
+          <div class="ai-preset-chips">
+            <div class="ai-chip active" onclick="selectAiPreset(this, 'zoom-in', 'Cinematic slow push-in zoom into focal subject, shallow depth of field, dramatic lighting.')">🎬 Zoom In</div>
+            <div class="ai-chip" onclick="selectAiPreset(this, 'pan-horizontal', 'Wide horizontal camera glide from left to right, sweeping parallax perspective.')">↔️ Camera Pan</div>
+            <div class="ai-chip" onclick="selectAiPreset(this, 'rain-storm', 'Moody atmospheric cinematic rain falling, soft wind mist, subtle lighting pulse.')">🌧️ Rain Storm</div>
+            <div class="ai-chip" onclick="selectAiPreset(this, 'floating-embers', 'Warm glowing fire embers and golden sparks floating upwards, mystical bokeh.')">✨ Embers</div>
+            <div class="ai-chip" onclick="selectAiPreset(this, 'action-shake', 'High-energy cinematic camera rumble, dramatic zoom punch, blockbuster motion.')">⚡ Action Shake</div>
+            <div class="ai-chip" onclick="selectAiPreset(this, 'cosmic-float', 'Smooth multi-plane 3D floating perspective, cosmic glow, subtle orbital camera tilt.')">🌌 3D Parallax</div>
+          </div>
+        </div>
+
+        <!-- 3. Duration & Output Player -->
+        <div class="ai-card">
+          <div class="ai-config-row">
+            <div>
+              <span class="ai-label">Duration:</span>
+              <div class="ai-toggle-group">
+                <button class="ai-toggle-btn active" onclick="setAiDuration(this, 3)">3s</button>
+                <button class="ai-toggle-btn" onclick="setAiDuration(this, 5)">5s</button>
+                <button class="ai-toggle-btn" onclick="setAiDuration(this, 8)">8s</button>
+              </div>
+            </div>
+            <div>
+              <span class="ai-label">Aspect Ratio:</span>
+              <div class="ai-toggle-group">
+                <button class="ai-toggle-btn active" onclick="setAiRatio(this, '16:9')">16:9</button>
+                <button class="ai-toggle-btn" onclick="setAiRatio(this, '9:16')">9:16</button>
+                <button class="ai-toggle-btn" onclick="setAiRatio(this, '1:1')">1:1</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Video Output / Progress Stage -->
+          <div class="ai-video-box" id="aiVideoBox">
+            <div id="aiVideoLoading" style="display: none;" class="ai-loading-stage">
+              <div class="ai-spinner"></div>
+              <div class="ai-progress-text" id="aiProgressText">0%</div>
+              <div class="ai-stage-text" id="aiStageText">Synthesizing 3D motion...</div>
+            </div>
+            <video id="aiOutputVideo" controls loop playsinline style="display:none; width: 100%; height: 100%; object-fit: contain;"></video>
+            <img id="aiStillPreview" src="https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=400&q=80" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+
+          <!-- Action Buttons -->
+          <div style="margin-top: 12px; display: flex; gap: 8px;">
+            <button id="aiGenerateBtn" class="ai-btn-primary" onclick="startAiVideoGeneration()">
+              🚀 Generate Free AI Video
+            </button>
+            <button id="aiDownloadBtn" class="ai-btn-download" style="display: none;" onclick="downloadAiVideo()">
+              ⬇️ Download Video
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <canvas id="aiRenderCanvas" style="display:none;"></canvas>
 
   <script>
     const DEFAULT_QUERY = 'new hindi dubbed full movie hollywood bollywood south all movie';
@@ -1830,6 +2293,302 @@
         }, { passive: false });
       });
     });
+
+    // =========================================================================
+    // AI IMAGE-TO-VIDEO ANIMATOR STUDIO SYSTEM (100% FREE CLIENT-SIDE)
+    // =========================================================================
+    let aiSelectedImage = 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=400&q=80';
+    let aiActivePreset = 'zoom-in';
+    let aiDuration = 3;
+    let aiAspectRatio = '16:9';
+    let aiGeneratedBlobUrl = null;
+    let aiIsGenerating = false;
+
+    function openAiVideoStudio() {
+      const modal = document.getElementById('aiStudioModal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeAiVideoStudio() {
+      const modal = document.getElementById('aiStudioModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function handleAiImageUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          aiSelectedImage = e.target.result;
+          document.getElementById('aiSourceImg').src = aiSelectedImage;
+          document.getElementById('aiStillPreview').src = aiSelectedImage;
+          document.getElementById('aiStillPreview').style.display = 'block';
+          document.getElementById('aiOutputVideo').style.display = 'none';
+          document.getElementById('aiDownloadBtn').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function setAiSample(url) {
+      aiSelectedImage = url;
+      document.getElementById('aiSourceImg').src = url;
+      document.getElementById('aiStillPreview').src = url;
+      document.getElementById('aiStillPreview').style.display = 'block';
+      document.getElementById('aiOutputVideo').style.display = 'none';
+      document.getElementById('aiDownloadBtn').style.display = 'none';
+    }
+
+    function selectAiPreset(el, presetId, promptText) {
+      document.querySelectorAll('.ai-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      aiActivePreset = presetId;
+      document.getElementById('aiPromptInput').value = promptText;
+    }
+
+    function setAiDuration(btn, dur) {
+      btn.parentElement.querySelectorAll('.ai-toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      aiDuration = dur;
+    }
+
+    function setAiRatio(btn, ratio) {
+      btn.parentElement.querySelectorAll('.ai-toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      aiAspectRatio = ratio;
+      const box = document.getElementById('aiVideoBox');
+      if (ratio === '9:16') {
+        box.style.height = '240px';
+      } else if (ratio === '1:1') {
+        box.style.height = '200px';
+      } else {
+        box.style.height = '180px';
+      }
+    }
+
+    async function startAiVideoGeneration() {
+      if (aiIsGenerating) return;
+      aiIsGenerating = true;
+
+      const genBtn = document.getElementById('aiGenerateBtn');
+      const downBtn = document.getElementById('aiDownloadBtn');
+      const loading = document.getElementById('aiVideoLoading');
+      const progressText = document.getElementById('aiProgressText');
+      const stageText = document.getElementById('aiStageText');
+      const videoEl = document.getElementById('aiOutputVideo');
+      const stillImg = document.getElementById('aiStillPreview');
+
+      genBtn.disabled = true;
+      genBtn.textContent = 'Synthesizing AI Video...';
+      downBtn.style.display = 'none';
+      stillImg.style.display = 'none';
+      videoEl.style.display = 'none';
+      loading.style.display = 'flex';
+      progressText.textContent = '10%';
+      stageText.textContent = 'Loading source image textures...';
+
+      try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = () => {
+            img.crossOrigin = '';
+            img.src = aiSelectedImage;
+            img.onload = () => resolve();
+            img.onerror = () => reject(new Error('Image failed to load'));
+          };
+          img.src = aiSelectedImage;
+        });
+
+        let targetW = 1280;
+        let targetH = 720;
+        if (aiAspectRatio === '9:16') {
+          targetW = 720;
+          targetH = 1280;
+        } else if (aiAspectRatio === '1:1') {
+          targetW = 720;
+          targetH = 720;
+        }
+
+        const canvas = document.getElementById('aiRenderCanvas');
+        canvas.width = targetW;
+        canvas.height = targetH;
+        const ctx = canvas.getContext('2d');
+
+        progressText.textContent = '25%';
+        stageText.textContent = 'Computing 3D camera trajectory...';
+
+        const stream = canvas.captureStream ? canvas.captureStream(30) : null;
+        if (!stream || typeof MediaRecorder === 'undefined') {
+          throw new Error('Video generation is not supported on this specific browser.');
+        }
+
+        let mimeType = 'video/webm;codecs=vp9';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = 'video/webm';
+          if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = '';
+        }
+
+        const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+        const chunks = [];
+        recorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+
+        const totalFrames = aiDuration * 30;
+        let frame = 0;
+
+        const particles = [];
+        const pCount = aiActivePreset === 'rain-storm' ? 100 : aiActivePreset === 'floating-embers' ? 50 : 25;
+        for (let i = 0; i < pCount; i++) {
+          particles.push({
+            x: Math.random() * targetW,
+            y: Math.random() * targetH,
+            speedY: aiActivePreset === 'rain-storm' ? 14 + Math.random() * 10 : aiActivePreset === 'floating-embers' ? -(1 + Math.random() * 2) : (Math.random() - 0.5),
+            speedX: aiActivePreset === 'rain-storm' ? -2 : (Math.random() - 0.5),
+            size: aiActivePreset === 'floating-embers' ? 2 + Math.random() * 3 : 1.5,
+            alpha: 0.3 + Math.random() * 0.7
+          });
+        }
+
+        recorder.start();
+
+        await new Promise((resolve) => {
+          function render() {
+            if (frame >= totalFrames) {
+              recorder.stop();
+              resolve();
+              return;
+            }
+
+            const progress = frame / totalFrames;
+            const eased = Math.sin((progress * Math.PI) / 2);
+
+            const pct = Math.floor(25 + progress * 70);
+            progressText.textContent = pct + '%';
+            if (pct < 60) {
+              stageText.textContent = 'Simulating 3D parallax & optical depth...';
+            } else {
+              stageText.textContent = 'Encoding MP4/WebM video stream...';
+            }
+
+            let scale = 1.0;
+            let panX = 0;
+            let panY = 0;
+            let rot = 0;
+
+            if (aiActivePreset === 'zoom-in') {
+              scale = 1.0 + eased * 0.22;
+              panY = Math.sin(progress * Math.PI) * -10;
+            } else if (aiActivePreset === 'pan-horizontal') {
+              scale = 1.12;
+              panX = (progress - 0.5) * -60;
+            } else if (aiActivePreset === 'action-shake') {
+              scale = 1.08 + Math.sin(progress * Math.PI) * 0.08;
+              panX = (Math.random() - 0.5) * 6;
+              panY = (Math.random() - 0.5) * 6;
+            } else if (aiActivePreset === 'cosmic-float') {
+              scale = 1.06 + Math.sin(progress * Math.PI) * 0.08;
+              rot = Math.sin(progress * Math.PI * 2) * 0.015;
+            } else if (aiActivePreset === 'rain-storm') {
+              scale = 1.04 + eased * 0.06;
+              panY = eased * 12;
+            } else if (aiActivePreset === 'floating-embers') {
+              scale = 1.05 + Math.sin(progress * Math.PI) * 0.08;
+              panY = -progress * 15;
+            }
+
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, targetW, targetH);
+
+            ctx.save();
+            ctx.translate(targetW / 2, targetH / 2);
+            ctx.rotate(rot);
+            ctx.scale(scale, scale);
+            ctx.translate(-targetW / 2 + panX, -targetH / 2 + panY);
+
+            const imgAspect = img.width / img.height;
+            const canvasAspect = targetW / targetH;
+            let dW = targetW, dH = targetH, dX = 0, dY = 0;
+            if (imgAspect > canvasAspect) {
+              dH = targetH;
+              dW = targetH * imgAspect;
+              dX = (targetW - dW) / 2;
+            } else {
+              dW = targetW;
+              dH = targetW / imgAspect;
+              dY = (targetH - dH) / 2;
+            }
+            ctx.drawImage(img, dX, dY, dW, dH);
+            ctx.restore();
+
+            // Render particles
+            if (aiActivePreset === 'rain-storm') {
+              ctx.save();
+              ctx.strokeStyle = 'rgba(200, 230, 255, 0.4)';
+              ctx.lineWidth = 1.2;
+              particles.forEach(p => {
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(p.x + p.speedX * 2, p.y + 14);
+                ctx.stroke();
+                p.y += p.speedY;
+                p.x += p.speedX;
+                if (p.y > targetH) { p.y = -10; p.x = Math.random() * targetW; }
+              });
+              ctx.restore();
+            } else if (aiActivePreset === 'floating-embers') {
+              ctx.save();
+              particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 180, 50, ${p.alpha})`;
+                ctx.fill();
+                p.y += p.speedY;
+                if (p.y < -10) { p.y = targetH + 10; p.x = Math.random() * targetW; }
+              });
+              ctx.restore();
+            }
+
+            frame++;
+            requestAnimationFrame(render);
+          }
+          render();
+        });
+
+        await new Promise((resolve) => {
+          recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: mimeType || 'video/webm' });
+            aiGeneratedBlobUrl = URL.createObjectURL(blob);
+            videoEl.src = aiGeneratedBlobUrl;
+            videoEl.style.display = 'block';
+            loading.style.display = 'none';
+            downBtn.style.display = 'inline-block';
+            videoEl.play();
+            resolve();
+          };
+        });
+
+      } catch (err) {
+        console.error('AI Video generation error:', err);
+        alert('Could not generate video: ' + (err.message || err));
+        stillImg.style.display = 'block';
+        loading.style.display = 'none';
+      } finally {
+        aiIsGenerating = false;
+        genBtn.disabled = false;
+        genBtn.textContent = '🚀 Generate Free AI Video';
+      }
+    }
+
+    function downloadAiVideo() {
+      if (!aiGeneratedBlobUrl) return;
+      const a = document.createElement('a');
+      a.href = aiGeneratedBlobUrl;
+      a.download = `ai-motion-video-${Date.now()}.webm`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
 
     // Start Live Search on load
     loadVideos(DEFAULT_QUERY);

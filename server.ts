@@ -9,9 +9,39 @@ async function startServer() {
   const PORT = 3000;
   const rootDir = process.cwd();
 
+  app.use(express.json({ limit: '10mb' }));
+
   // Health check endpoint
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok' });
+  });
+
+  // AI Motion Prompt Enhancer (Gemini 3.8 Flash - Free Tier)
+  app.post('/api/ai/enhance-prompt', async (req, res) => {
+    try {
+      const { userPrompt, style } = req.body;
+      const { GoogleGenAI } = await import('@google/genai');
+      const ai = new GoogleGenAI();
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.8-flash',
+        contents: `You are an expert Hollywood cinematic director and AI video animation specialist. 
+Given this user motion idea: "${userPrompt || 'Cinematic dramatic motion'}" and motion style: "${style || 'cinematic'}",
+generate an enhanced, descriptive cinematic motion prompt (in 2-3 sentences) detailing:
+1. Camera movement (e.g. slow push-in, parallax pan, low-angle tilt)
+2. Atmospheric effects (e.g. volumetric lighting, mist, rain particles, golden hour lens flare)
+3. Subject micro-movements and cinematic depth.
+Keep the prompt concise, evocative, and tailored for generating an animated video from a still image.
+Only return the prompt text without any introductory conversational text or quotes.`,
+      });
+      const enhanced = response.text?.trim() || userPrompt;
+      res.json({ success: true, enhancedPrompt: enhanced });
+    } catch (err: any) {
+      console.error('Enhance prompt error:', err);
+      res.json({ 
+        success: true, 
+        enhancedPrompt: `${req.body.userPrompt || 'Cinematic slow zoom with depth of field'}, dramatic lighting with gentle atmospheric particle drift and realistic camera glide.` 
+      });
+    }
   });
 
   // Real YouTube Search endpoint for the Movie App

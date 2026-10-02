@@ -775,8 +775,16 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
           </span>
         </div>
 
-        {/* Right: Quick live filter chips */}
+        {/* Right: Quick live filter chips + AI Video Animator */}
         <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto py-0.5">
+          <button
+            type="button"
+            onClick={() => (window as any).openAiVideoAnimator?.()}
+            className="px-3 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white border border-purple-400/40 shadow-sm flex items-center gap-1 shrink-0"
+            title="Create Free AI Animated Videos from Images"
+          >
+            <span>✨ AI Video Animator</span>
+          </button>
           {QUICK_FILTERS.map((filter) => {
             const isSelected = searchQuery.trim().toLowerCase() === filter.query.toLowerCase();
             return (
@@ -836,25 +844,25 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
             </div>
 
             {/* Cinema Video Player Container */}
-            <div className="max-w-5xl mx-auto w-full px-2 sm:px-6 pt-3 pb-6 flex flex-col gap-4">
+            <div className={`max-w-5xl mx-auto w-full flex flex-col gap-4 ${isPlayerFullscreen ? 'p-0 m-0' : 'px-2 sm:px-6 pt-3 pb-6'}`}>
               {/* Fullscreen Responsive Cinema Player Box */}
               <div
                 id="cinema-player-box"
                 className={
                   isPlayerFullscreen
-                    ? "fixed inset-0 top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999999] bg-black m-0 p-0 overflow-hidden"
-                    : "w-full aspect-video bg-black rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-[#272727] relative group select-none"
+                    ? "fixed inset-0 top-0 left-0 right-0 bottom-0 w-screen h-screen h-[100dvh] z-[9999999] bg-black m-0 p-0 overflow-hidden flex items-center justify-center"
+                    : "w-full aspect-video bg-black rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-[#272727] relative group select-none flex items-center justify-center"
                 }
               >
-                {/* Cinema Stage - Fills container perfectly */}
-                <div className="w-full h-full relative overflow-hidden bg-black">
+                {/* Cinema Stage - Fills container perfectly with zero shift */}
+                <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
                 {/* Official YouTube Embed with youtube-nocookie, origin & strict-origin-when-cross-origin to eliminate Error 152 / 153 */}
                 <iframe
                   key={selectedVideo.id}
                   id="youtube-player-frame"
                   src={`https://www.youtube-nocookie.com/embed/${selectedVideo.id}?autoplay=1&playsinline=1&rel=0&enablejsapi=1&origin=${encodeURIComponent(typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://hdskay.blogspot.com')}&widget_referrer=${encodeURIComponent(typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://hdskay.blogspot.com')}`}
                   title={selectedVideo.title}
-                  className="w-full h-full absolute top-0 left-0 border-none block m-0 p-0"
+                  className="w-full h-full absolute inset-0 m-auto border-none block"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                   referrerPolicy="strict-origin-when-cross-origin"

@@ -1216,11 +1216,14 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 fullscreenContainer.removeAllViews();
-                fullscreenContainer.addView(customVideoView, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         Gravity.CENTER
-                ));
+                );
+                lp.setMargins(0, 0, 0, 0);
+                customVideoView.setLayoutParams(lp);
+                fullscreenContainer.addView(customVideoView, lp);
 
                 // Add Untouch Shields over Fullscreen Video
                 addFullscreenUntouchOverlays();
