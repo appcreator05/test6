@@ -14,7 +14,11 @@ import {
   Calendar,
   AlertCircle,
   Loader2,
-  Maximize
+  Maximize,
+  Sliders,
+  ChevronDown,
+  Mic,
+  MicOff
 } from 'lucide-react';
 
 export interface RealYouTubeVideo {
@@ -295,13 +299,155 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const [hasMore, setHasMore] = useState<boolean>(true);
 
+  // Voice Search (Speech-to-Text) System
+  const [isListening, setIsListening] = useState<boolean>(false);
+  const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
+  const recognitionRef = useRef<any>(null);
+
+  const startVoiceSearch = () => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setVoiceNotice('Voice search is not supported in this browser. Please type to search.');
+      setTimeout(() => setVoiceNotice(null), 4000);
+      return;
+    }
+
+    try {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort();
+        } catch {}
+      }
+
+      const recognition = new SpeechRecognition();
+      recognitionRef.current = recognition;
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = 'bn-IN';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        setVoiceNotice('Listening... Speak movie name now (মুখে বলুন)...');
+      };
+
+      recognition.onresult = (event: any) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        if (transcript.trim()) {
+          setSearchQuery(transcript.trim());
+          setVoiceNotice(`"${transcript.trim()}"`);
+        }
+        if (event.results[0]?.isFinal) {
+          setIsListening(false);
+          setVoiceNotice(null);
+          setSelectedVideo(null);
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        setIsListening(false);
+        if (event.error === 'not-allowed') {
+          setVoiceNotice('Microphone permission denied. Please allow microphone access.');
+        } else if (event.error === 'no-speech') {
+          setVoiceNotice('No speech detected. Please try again.');
+        } else {
+          setVoiceNotice('Could not recognize voice. Please try again.');
+        }
+        setTimeout(() => setVoiceNotice(null), 4000);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+        setTimeout(() => {
+          setVoiceNotice((prev) => (prev && prev.startsWith('Listening') ? null : prev));
+        }, 1500);
+      };
+
+      recognition.start();
+    } catch {
+      setIsListening(false);
+      setVoiceNotice('Unable to start voice search.');
+      setTimeout(() => setVoiceNotice(null), 3000);
+    }
+  };
+
+  const stopVoiceSearch = () => {
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch {}
+    }
+    setIsListening(false);
+    setVoiceNotice(null);
+  };
+
+  const toggleVoiceSearch = () => {
+    if (isListening) {
+      stopVoiceSearch();
+    } else {
+      startVoiceSearch();
+    }
+  };
+
   // Selected video for the dedicated Player view (when clicked, player opens in this separate section)
   const [selectedVideo, setSelectedVideo] = useState<RealYouTubeVideo | null>(null);
   const [isPlayerFullscreen, setIsPlayerFullscreen] = useState<boolean>(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(true);
   const [isAutoNext, setIsAutoNext] = useState<boolean>(true);
   const [showControls, setShowControls] = useState<boolean>(true);
+  const [showGearHideBtn, setShowGearHideBtn] = useState<boolean>(false);
+  const lastPointerPosRef = useRef<{ x: number; y: number; width: number; height: number }>({ x: 0, y: 0, width: 0, height: 0 });
+  const [currentTime, setCurrentTime] = useState<number>(0);
+  const [duration, setDuration] = useState<number>(0);
+  const timelineRef = useRef<HTMLDivElement | null>(null);
   const controlsTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    setShowGearHideBtn(false);
+  }, [selectedVideo?.id]);
+
+  useEffect(() => {
+    const handleWindowBlur = () => {
+      const pos = lastPointerPosRef.current;
+      if (pos.width > 0 && pos.x >= pos.width - 140 && pos.y <= 65) {
+        setShowGearHideBtn(true);
+        setShowControls(true);
+      }
+    };
+    window.addEventListener('blur', handleWindowBlur);
+    return () => {
+      window.removeEventListener('blur', handleWindowBlur);
+    };
+  }, []);
+
+  const parseDurationStringToSeconds = (str?: string): number => {
+    if (!str) return 0;
+    const parts = str.split(':').map((p) => parseInt(p, 10));
+    if (parts.some(isNaN)) return 0;
+    if (parts.length === 3) {
+      return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    }
+    if (parts.length === 2) {
+      return parts[0] * 60 + parts[1];
+    }
+    return parts[0] || 0;
+  };
+
+  const formatTime = (seconds: number): string => {
+    if (isNaN(seconds) || seconds < 0) return '00:00';
+    const totalSeconds = Math.floor(seconds);
+    const hrs = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+    if (hrs > 0) {
+      return `${hrs}:${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+    return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
 
   const resetControlsTimer = () => {
     setShowControls(true);
@@ -342,6 +488,62 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
     resetControlsTimer();
   };
 
+  const handleSeek = (newTime: number) => {
+    const maxDur = duration > 0 ? duration : parseDurationStringToSeconds(selectedVideo?.duration) || 3600;
+    const boundedTime = Math.max(0, Math.min(newTime, maxDur));
+    setCurrentTime(boundedTime);
+    const iframe = document.getElementById('youtube-player-frame') as HTMLIFrameElement;
+    if (iframe?.contentWindow) {
+      iframe.contentWindow.postMessage(
+        JSON.stringify({
+          event: 'command',
+          func: 'seekTo',
+          args: [boundedTime, true]
+        }),
+        '*'
+      );
+    }
+    resetControlsTimer();
+  };
+
+  const handleSkip = (secondsDelta: number, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    handleSeek(currentTime + secondsDelta);
+  };
+
+  const handleTimelineInteraction = (clientX: number) => {
+    if (!timelineRef.current) return;
+    const rect = timelineRef.current.getBoundingClientRect();
+    if (rect.width <= 0) return;
+    const clickX = Math.max(0, Math.min(clientX - rect.left, rect.width));
+    const percentage = clickX / rect.width;
+    const maxDur = duration > 0 ? duration : parseDurationStringToSeconds(selectedVideo?.duration) || 3600;
+    const targetTime = percentage * maxDur;
+    handleSeek(targetTime);
+  };
+
+  const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    handleTimelineInteraction(e.clientX);
+  };
+
+  const handleTimelineTouch = (e: React.TouchEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    if (e.touches.length > 0) {
+      handleTimelineInteraction(e.touches[0].clientX);
+    }
+  };
+
+  const handleTimelineTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    if (e.touches.length > 0) {
+      handleTimelineInteraction(e.touches[0].clientX);
+    }
+    resetControlsTimer();
+  };
+
+  const progressPercentage = duration > 0 ? Math.min(100, Math.max(0, (currentTime / duration) * 100)) : 0;
+
   const handlePlayNextVideo = (e?: React.MouseEvent) => {
     if (e) {
       e.stopPropagation();
@@ -350,13 +552,17 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
     const currentIndex = videos.findIndex((v) => v.id === selectedVideo.id);
     const nextIndex = (currentIndex + 1) % videos.length;
     setSelectedVideo(videos[nextIndex]);
+    setCurrentTime(0);
     setIsVideoPlaying(true);
     resetControlsTimer();
   };
 
-  // Auto-hide controls timer and listen for YouTube embed player events (ended / play / pause)
+  // Reset timestamps and controls timer when opening new video
   useEffect(() => {
     if (selectedVideo) {
+      setCurrentTime(0);
+      const parsedDur = parseDurationStringToSeconds(selectedVideo.duration);
+      setDuration(parsedDur > 0 ? parsedDur : 0);
       setIsVideoPlaying(true);
       resetControlsTimer();
     }
@@ -365,11 +571,33 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
     };
   }, [selectedVideo]);
 
+  // Listen for YouTube embed player events (ended, play, pause, time updates)
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       try {
         const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-        if (data && data.event === 'onStateChange') {
+        if (!data) return;
+
+        if (data.event === 'infoDelivery' && data.info) {
+          if (typeof data.info.currentTime === 'number') {
+            setCurrentTime(data.info.currentTime);
+          }
+          if (typeof data.info.duration === 'number' && data.info.duration > 0) {
+            setDuration(data.info.duration);
+          }
+          if (data.info.playerState === 1) {
+            setIsVideoPlaying(true);
+          } else if (data.info.playerState === 2) {
+            setIsVideoPlaying(false);
+          } else if (data.info.playerState === 0) {
+            setIsVideoPlaying(false);
+            if (isAutoNext) {
+              handlePlayNextVideo();
+            }
+          }
+        }
+
+        if (data.event === 'onStateChange') {
           // 1 = playing, 2 = paused, 0 = ended
           if (data.info === 1) {
             setIsVideoPlaying(true);
@@ -390,6 +618,29 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
       window.removeEventListener('message', handleMessage);
     };
   }, [isAutoNext, selectedVideo, videos]);
+
+  // Periodic poll to keep current time and duration accurate from YouTube iframe
+  useEffect(() => {
+    if (!selectedVideo || !isVideoPlaying) return;
+    const interval = setInterval(() => {
+      const iframe = document.getElementById('youtube-player-frame') as HTMLIFrameElement;
+      if (iframe?.contentWindow) {
+        iframe.contentWindow.postMessage(JSON.stringify({ event: 'listening' }), '*');
+        iframe.contentWindow.postMessage(
+          JSON.stringify({ event: 'command', func: 'getCurrentTime', args: [] }),
+          '*'
+        );
+      }
+      setCurrentTime((prev) => {
+        if (duration > 0 && prev < duration) {
+          return prev + 1;
+        }
+        return prev;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [selectedVideo, isVideoPlaying, duration]);
 
   // Synchronize Fullscreen state with Device Orientation and YouTube Embed events
   useEffect(() => {
@@ -826,9 +1077,15 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
           onSubmit={handleSearchSubmit}
           className="flex-1 w-full relative flex items-center"
         >
-          <div className="w-full h-10 sm:h-11 flex items-center bg-[#141414] hover:bg-[#181818] border border-[#303030] focus-within:border-red-500 focus-within:bg-[#161616] focus-within:shadow-[0_0_15px_rgba(239,68,68,0.2)] rounded-full overflow-hidden shadow-inner pl-4 pr-1.5 transition-all">
+          <div className={`w-full h-10 sm:h-11 flex items-center bg-[#141414] hover:bg-[#181818] border transition-all rounded-full overflow-hidden shadow-inner pl-3.5 pr-1.5 ${
+            isListening
+              ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)] bg-[#181212]'
+              : 'border-[#303030] focus-within:border-red-500 focus-within:bg-[#161616] focus-within:shadow-[0_0_15px_rgba(239,68,68,0.2)]'
+          }`}>
             {isTyping || isLoading ? (
-              <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 mr-2.5 shrink-0 animate-spin" />
+              <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 mr-2 shrink-0 animate-spin" />
+            ) : isListening ? (
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping mr-2.5 shrink-0" />
             ) : (
               <Search className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 mr-2.5 shrink-0 pointer-events-none" />
             )}
@@ -836,26 +1093,64 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search YouTube full movies... Live search as you type"
+              placeholder={isListening ? "Listening... Speak movie name now..." : "Search YouTube full movies... or tap Mic"}
               className="w-full bg-transparent py-2 text-xs sm:text-sm md:text-base text-white placeholder-slate-400 outline-none font-medium"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="text-slate-400 hover:text-white text-base sm:text-lg px-2.5 py-1 cursor-pointer font-bold transition-colors"
+                className="text-slate-400 hover:text-white text-base sm:text-lg px-2 cursor-pointer font-bold transition-colors shrink-0"
                 title="Clear Search"
               >
                 ×
               </button>
             )}
+
+            {/* Microphone Voice Search Button */}
+            <button
+              type="button"
+              onClick={toggleVoiceSearch}
+              className={`p-2 rounded-full transition-all cursor-pointer flex items-center justify-center shrink-0 active:scale-90 mr-1 ${
+                isListening
+                  ? 'bg-red-600 text-white animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.8)] ring-2 ring-red-400/50'
+                  : 'text-slate-300 hover:text-white hover:bg-[#252525] border border-transparent hover:border-[#383838]'
+              }`}
+              title={isListening ? 'Stop Voice Search (শোনা বন্ধ করুন)' : 'Voice Search with Mic (মুখে বলে খুঁজুন)'}
+            >
+              {isListening ? (
+                <Mic className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-white animate-bounce" />
+              ) : (
+                <Mic className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-slate-300" />
+              )}
+            </button>
+
             <button
               type="submit"
-              className="px-4 sm:px-6 py-1.5 sm:py-2 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold rounded-full transition-all shrink-0 cursor-pointer shadow-sm active:scale-95"
+              className="px-3.5 sm:px-6 py-1.5 sm:py-2 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold rounded-full transition-all shrink-0 cursor-pointer shadow-sm active:scale-95"
             >
               Search
             </button>
           </div>
+
+          {/* Voice Search Feedback Banner */}
+          {voiceNotice && (
+            <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-[#1a1a1a] border border-red-500/40 px-4 py-2 rounded-2xl shadow-2xl flex items-center justify-between text-xs text-slate-200 animate-in fade-in slide-in-from-top-1 backdrop-blur-md">
+              <div className="flex items-center gap-2.5">
+                <span className={`w-2.5 h-2.5 rounded-full ${isListening ? 'bg-red-500 animate-ping' : 'bg-emerald-400'}`} />
+                <span className="font-semibold text-white">{voiceNotice}</span>
+              </div>
+              {isListening && (
+                <button
+                  type="button"
+                  onClick={stopVoiceSearch}
+                  className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold rounded-full cursor-pointer transition-all ml-2"
+                >
+                  Done
+                </button>
+              )}
+            </div>
+          )}
         </form>
       </header>
 
@@ -950,7 +1245,52 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
                 }
               >
                 {/* Cinema Stage - Fills container perfectly with zero shift */}
-                <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
+                <div
+                  className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center"
+                  onMouseMove={(e) => {
+                    resetControlsTimer();
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    lastPointerPosRef.current = {
+                      x: e.clientX - rect.left,
+                      y: e.clientY - rect.top,
+                      width: rect.width,
+                      height: rect.height,
+                    };
+                  }}
+                  onPointerDownCapture={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    lastPointerPosRef.current = {
+                      x,
+                      y,
+                      width: rect.width,
+                      height: rect.height,
+                    };
+                    if (x >= rect.width - 140 && y <= 65) {
+                      setShowGearHideBtn(true);
+                      setShowControls(true);
+                    }
+                  }}
+                  onTouchStartCapture={(e) => {
+                    if (e.touches && e.touches[0]) {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const touch = e.touches[0];
+                      const x = touch.clientX - rect.left;
+                      const y = touch.clientY - rect.top;
+                      lastPointerPosRef.current = {
+                        x,
+                        y,
+                        width: rect.width,
+                        height: rect.height,
+                      };
+                      if (x >= rect.width - 140 && y <= 65) {
+                        setShowGearHideBtn(true);
+                        setShowControls(true);
+                      }
+                    }
+                  }}
+                >
                 {/* Official YouTube Embed with fs=0 to remove YouTube's native fullscreen button */}
                 <iframe
                   key={selectedVideo.id}
@@ -970,38 +1310,21 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
                   }}
                 />
 
-                {/* UNTOUCH SHIELD 1: TOP-LEFT AREA (Avatar, Title, Channel Name, Speaker Icon) */}
-                <div
-                  className="absolute top-0 left-0 w-[calc(100%-92px)] sm:w-[calc(100%-105px)] [&:fullscreen]:w-[calc(100%-130px)] [&:-webkit-full-screen]:w-[calc(100%-130px)] h-[50px] sm:h-[56px] [&:fullscreen]:h-[58px] [&:-webkit-full-screen]:h-[58px] z-30 [&:fullscreen]:z-[999999] [&:-webkit-full-screen]:z-[999999] pointer-events-auto cursor-default select-none bg-transparent"
-                  title="Untouch Protected Area"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onTouchStart={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                  }}
-                />
-
-                {/* Interactive Touch Area: Tapping video screen brings up the bottom controls (auto-hides after 5s) */}
-                <div
-                  className="absolute inset-0 z-20 cursor-pointer"
-                  onClick={handleScreenTap}
-                  onTouchStart={resetControlsTimer}
-                  onMouseMove={resetControlsTimer}
-                />
+                {/* Floating button to restore bottom controls if hidden */}
+                {!showControls && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      resetControlsTimer();
+                    }}
+                    className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 px-3.5 py-1.5 bg-black/85 hover:bg-black text-white/90 hover:text-white border border-white/20 rounded-full text-xs font-bold shadow-2xl backdrop-blur-md transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
+                    title="Show Player Controls & Timeline"
+                  >
+                    <Sliders className="w-3.5 h-3.5 text-red-500" />
+                    <span>Controls</span>
+                  </button>
+                )}
 
                 {/* SLIDE-UP BOTTOM CONTROL LAYOUT: Play/Pause, Auto Next, and Landscape Fullscreen button */}
                 <div
@@ -1019,90 +1342,167 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
                     resetControlsTimer();
                   }}
                 >
-                  <div className="bg-gradient-to-t from-black/95 via-black/85 to-transparent pt-8 pb-3 px-3 sm:px-6 flex items-center justify-between gap-2 backdrop-blur-xs select-none">
-                    {/* Left: Play/Pause + Next Video */}
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={togglePlayPause}
-                        className="flex items-center gap-1.5 px-3.5 py-1.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold text-xs rounded-full shadow-lg transition-all cursor-pointer border border-red-500/50"
-                        title={isVideoPlaying ? 'Pause Video' : 'Play Video'}
+                  <div className="bg-gradient-to-t from-black/95 via-black/90 to-transparent pt-6 pb-2.5 px-3 sm:px-6 flex flex-col gap-2 backdrop-blur-xs select-none">
+                    {/* 1. INTERACTIVE VIDEO TIMELINE / SEEKBAR */}
+                    <div className="w-full flex flex-col gap-1 select-none">
+                      {/* Timeline Track with Scrubber */}
+                      <div
+                        ref={timelineRef}
+                        onClick={handleTimelineClick}
+                        onTouchStart={handleTimelineTouch}
+                        onTouchMove={handleTimelineTouchMove}
+                        className="relative w-full h-5 flex items-center cursor-pointer group py-1.5"
+                        title="Click or drag timeline to skip"
                       >
-                        {isVideoPlaying ? (
-                          <>
-                            <Pause className="w-3.5 h-3.5 fill-white" />
-                            <span>Pause</span>
-                          </>
-                        ) : (
-                          <>
-                            <Play className="w-3.5 h-3.5 fill-white" />
-                            <span>Play</span>
-                          </>
-                        )}
-                      </button>
+                        {/* Background Bar */}
+                        <div className="w-full h-1 sm:h-1.5 bg-white/25 hover:bg-white/35 rounded-full overflow-hidden transition-all group-hover:h-2">
+                          {/* Progress Fill Bar */}
+                          <div
+                            className="h-full bg-gradient-to-r from-red-600 via-rose-500 to-red-500 rounded-full transition-[width] duration-150"
+                            style={{ width: `${progressPercentage}%` }}
+                          />
+                        </div>
 
-                      <button
-                        type="button"
-                        onClick={handlePlayNextVideo}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#252525] hover:bg-[#333333] active:scale-95 text-slate-200 hover:text-white font-semibold text-xs rounded-full border border-[#3d3d3d] transition-all cursor-pointer shadow-sm"
-                        title="Play Next Movie"
-                      >
-                        <SkipForward className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Next</span>
-                      </button>
+                        {/* Scrubber Thumb */}
+                        <div
+                          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-white rounded-full shadow-lg border-2 border-red-600 scale-90 group-hover:scale-110 transition-transform pointer-events-none"
+                          style={{ left: `${progressPercentage}%` }}
+                        />
+                      </div>
+
+                      {/* Timestamps and Fast 10s Rewind/Forward Controls */}
+                      <div className="flex items-center justify-between text-[11px] sm:text-xs font-mono font-medium text-slate-300 px-0.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-white font-bold">{formatTime(currentTime)}</span>
+                          <span className="text-slate-500">/</span>
+                          <span className="text-slate-400">{formatTime(duration)}</span>
+                        </div>
+
+                        {/* Quick -10s / +10s Skip Buttons */}
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={(e) => handleSkip(-10, e)}
+                            className="px-2 py-0.5 rounded-full bg-[#222222] hover:bg-[#333333] active:scale-95 text-slate-300 hover:text-white text-[10px] font-semibold border border-[#3a3a3a] transition-all cursor-pointer shadow-xs"
+                            title="Rewind 10 seconds"
+                          >
+                            -10s
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleSkip(10, e)}
+                            className="px-2 py-0.5 rounded-full bg-[#222222] hover:bg-[#333333] active:scale-95 text-slate-300 hover:text-white text-[10px] font-semibold border border-[#3a3a3a] transition-all cursor-pointer shadow-xs"
+                            title="Forward 10 seconds"
+                          >
+                            +10s
+                          </button>
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Center: Auto Next Toggle Button */}
-                    <div className="flex items-center shrink-0">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsAutoNext(!isAutoNext);
-                          resetControlsTimer();
-                        }}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold text-xs transition-all cursor-pointer border shadow-sm whitespace-nowrap shrink-0 ${
-                          isAutoNext
-                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-400/50'
-                            : 'bg-[#252525] hover:bg-[#333333] text-slate-400 border-[#3d3d3d]'
-                        }`}
-                        title="Toggle Auto Next Movie"
-                      >
-                        <span className={`w-2 h-2 rounded-full shrink-0 ${isAutoNext ? 'bg-white animate-pulse' : 'bg-slate-500'}`} />
-                        <span className="whitespace-nowrap">Auto Next: {isAutoNext ? 'ON' : 'OFF'}</span>
-                      </button>
-                    </div>
-
-                    {/* Right: Fullscreen icon only (without Landscape text) */}
-                    <div className="flex items-center shrink-0">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          togglePlayerFullscreen();
-                        }}
-                        className="flex items-center justify-center p-2 sm:px-2.5 sm:py-2 bg-[#1e293b] hover:bg-[#334155] active:scale-95 text-sky-400 font-bold rounded-full border border-sky-500/30 transition-all cursor-pointer shadow-sm shrink-0"
-                        title={isPlayerFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="lucide lucide-maximize w-4 h-4"
-                          aria-hidden="true"
+                    {/* 2. CONTROL BUTTONS ROW */}
+                    <div className="flex items-center justify-between gap-2 pt-1">
+                      {/* Left: Play/Pause + Next Video */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={togglePlayPause}
+                          className="flex items-center gap-1.5 px-3.5 py-1.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold text-xs rounded-full shadow-lg transition-all cursor-pointer border border-red-500/50 whitespace-nowrap shrink-0"
+                          title={isVideoPlaying ? 'Pause Video' : 'Play Video'}
                         >
-                          <path d="M8 3H5a2 2 0 0 0-2 2v3"></path>
-                          <path d="M21 8V5a2 2 0 0 0-2-2h-3"></path>
-                          <path d="M3 16v3a2 2 0 0 0 2 2h3"></path>
-                          <path d="M16 21h3a2 2 0 0 0 2-2v-3"></path>
-                        </svg>
-                      </button>
+                          {isVideoPlaying ? (
+                            <>
+                              <Pause className="w-3.5 h-3.5 fill-white" />
+                              <span>Pause</span>
+                            </>
+                          ) : (
+                            <>
+                              <Play className="w-3.5 h-3.5 fill-white" />
+                              <span>Play</span>
+                            </>
+                          )}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handlePlayNextVideo}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#252525] hover:bg-[#333333] active:scale-95 text-slate-200 hover:text-white font-semibold text-xs rounded-full border border-[#3d3d3d] transition-all cursor-pointer shadow-sm whitespace-nowrap shrink-0"
+                          title="Play Next Movie"
+                        >
+                          <SkipForward className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Next</span>
+                        </button>
+                      </div>
+
+                      {/* Center: Auto Next Toggle Button */}
+                      <div className="flex items-center shrink-0">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsAutoNext(!isAutoNext);
+                            resetControlsTimer();
+                          }}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold text-xs transition-all cursor-pointer border shadow-sm whitespace-nowrap shrink-0 ${
+                            isAutoNext
+                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-400/50'
+                              : 'bg-[#252525] hover:bg-[#333333] text-slate-400 border-[#3d3d3d]'
+                          }`}
+                          title="Toggle Auto Next Movie"
+                        >
+                          <span className={`w-2 h-2 rounded-full shrink-0 ${isAutoNext ? 'bg-white animate-pulse' : 'bg-slate-500'}`} />
+                          <span className="whitespace-nowrap">Auto Next: {isAutoNext ? 'ON' : 'OFF'}</span>
+                        </button>
+                      </div>
+
+                      {/* Right: Fullscreen icon only (without Landscape text) */}
+                      <div className="flex items-center shrink-0">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            togglePlayerFullscreen();
+                          }}
+                          className="flex items-center justify-center p-2 sm:px-2.5 sm:py-2 bg-[#1e293b] hover:bg-[#334155] active:scale-95 text-sky-400 font-bold rounded-full border border-sky-500/30 transition-all cursor-pointer shadow-sm shrink-0"
+                          title={isPlayerFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="lucide lucide-maximize w-4 h-4"
+                            aria-hidden="true"
+                          >
+                            <path d="M8 3H5a2 2 0 0 0-2 2v3"></path>
+                            <path d="M21 8V5a2 2 0 0 0-2-2h-3"></path>
+                            <path d="M3 16v3a2 2 0 0 0 2 2h3"></path>
+                            <path d="M16 21h3a2 2 0 0 0 2-2v-3"></path>
+                          </svg>
+                        </button>
+
+                        {showGearHideBtn && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowControls(false);
+                              setShowGearHideBtn(false);
+                            }}
+                            className="flex items-center justify-center p-2 sm:px-2.5 sm:py-2 bg-[#222222] hover:bg-[#333333] active:scale-95 text-slate-300 hover:text-white font-bold rounded-full border border-[#3d3d3d] transition-all cursor-pointer shadow-sm shrink-0 animate-in fade-in zoom-in-95 duration-200"
+                            title="Hide Controls Bar"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down w-4 h-4" aria-hidden="true">
+                              <path d="m6 9 6 6 6-6"></path>
+                            </svg>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

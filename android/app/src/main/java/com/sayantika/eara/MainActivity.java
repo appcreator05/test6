@@ -1494,25 +1494,7 @@ public class MainActivity extends AppCompatActivity {
      * Crucial: setFocusable(false) prevents window focus theft.
      */
     private void addFullscreenUntouchOverlays() {
-        if (fullscreenContainer == null) return;
-
-        float density = getResources().getDisplayMetrics().density;
-
-        // 1. Top-Left Untouch Shield: Avatar, Title, Channel name, Speaker/mute icon
-        FrameLayout.LayoutParams topLeftParams = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                (int) (55 * density)
-        );
-        topLeftParams.gravity = Gravity.TOP | Gravity.START;
-        topLeftParams.rightMargin = (int) (130 * density);
-
-        View topLeftShield = new View(this);
-        topLeftShield.setLayoutParams(topLeftParams);
-        topLeftShield.setBackgroundColor(Color.TRANSPARENT);
-        topLeftShield.setClickable(true);
-        topLeftShield.setFocusable(false);
-        topLeftShield.setOnTouchListener((v, event) -> true);
-        fullscreenContainer.addView(topLeftShield);
+        // Disabled so YouTube player controls (Gear settings, Quality, Volume, CC) remain 100% clickable
     }
 
     private void setupProgressBar() {
