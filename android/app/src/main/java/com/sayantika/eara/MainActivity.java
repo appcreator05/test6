@@ -743,11 +743,14 @@ public class MainActivity extends AppCompatActivity {
 
                 if (fullscreenContainer != null) {
                     fullscreenContainer.removeAllViews();
-                    fullscreenContainer.addView(customVideoView, new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             Gravity.CENTER
-                    ));
+                    );
+                    lp.setMargins(0, 0, 0, 0);
+                    customVideoView.setLayoutParams(lp);
+                    fullscreenContainer.addView(customVideoView, lp);
                     addFullscreenUntouchOverlays();
                     fullscreenContainer.setVisibility(View.VISIBLE);
                     fullscreenContainer.bringToFront();
@@ -1899,6 +1902,11 @@ public class MainActivity extends AppCompatActivity {
         hideSystemUI();
         if (getWindow() != null && getWindow().getDecorView() != null) {
             getWindow().getDecorView().postDelayed(this::hideSystemUI, 250);
+        }
+        if (youtubeWebView != null) {
+            youtubeWebView.post(() -> {
+                youtubeWebView.evaluateJavascript("if (typeof window.scrollTo === 'function') { window.scrollTo(0, 0); }", null);
+            });
         }
     }
 

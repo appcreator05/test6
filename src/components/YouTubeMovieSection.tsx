@@ -842,19 +842,19 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
                 id="cinema-player-box"
                 className={
                   isPlayerFullscreen
-                    ? "fixed inset-0 w-screen h-[100dvh] z-[9999999] bg-black flex items-center justify-center m-0 p-0 overflow-hidden"
+                    ? "fixed inset-0 top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999999] bg-black m-0 p-0 overflow-hidden"
                     : "w-full aspect-video bg-black rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-[#272727] relative group select-none"
                 }
               >
                 {/* Cinema Stage - Fills container perfectly */}
-                <div className="w-full h-full relative overflow-hidden flex items-center justify-center bg-black">
+                <div className="w-full h-full relative overflow-hidden bg-black">
                 {/* Official YouTube Embed with youtube-nocookie, origin & strict-origin-when-cross-origin to eliminate Error 152 / 153 */}
                 <iframe
                   key={selectedVideo.id}
                   id="youtube-player-frame"
                   src={`https://www.youtube-nocookie.com/embed/${selectedVideo.id}?autoplay=1&playsinline=1&rel=0&enablejsapi=1&origin=${encodeURIComponent(typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://hdskay.blogspot.com')}&widget_referrer=${encodeURIComponent(typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://hdskay.blogspot.com')}`}
                   title={selectedVideo.title}
-                  className="w-full h-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-none block max-w-full max-h-full"
+                  className="w-full h-full absolute top-0 left-0 border-none block m-0 p-0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                   referrerPolicy="strict-origin-when-cross-origin"
