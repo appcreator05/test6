@@ -1513,51 +1513,6 @@ public class MainActivity extends AppCompatActivity {
         topLeftShield.setFocusable(false);
         topLeftShield.setOnTouchListener((v, event) -> true);
         fullscreenContainer.addView(topLeftShield);
-
-        // 2. Bottom-Left Untouch Shield: Link icon
-        FrameLayout.LayoutParams bottomLeftParams = new FrameLayout.LayoutParams(
-                (int) (120 * density),
-                (int) (46 * density)
-        );
-        bottomLeftParams.gravity = Gravity.BOTTOM | Gravity.START;
-
-        View bottomLeftShield = new View(this);
-        bottomLeftShield.setLayoutParams(bottomLeftParams);
-        bottomLeftShield.setBackgroundColor(Color.TRANSPARENT);
-        bottomLeftShield.setClickable(true);
-        bottomLeftShield.setFocusable(false);
-        bottomLeftShield.setOnTouchListener((v, event) -> true);
-        fullscreenContainer.addView(bottomLeftShield);
-
-        // 3. Bottom-Right Untouch Shield: YouTube logo & app link
-        FrameLayout.LayoutParams bottomRightParams = new FrameLayout.LayoutParams(
-                (int) (130 * density),
-                (int) (46 * density)
-        );
-        bottomRightParams.gravity = Gravity.BOTTOM | Gravity.END;
-
-        View bottomRightShield = new View(this);
-        bottomRightShield.setLayoutParams(bottomRightParams);
-        bottomRightShield.setBackgroundColor(Color.TRANSPARENT);
-        bottomRightShield.setClickable(true);
-        bottomRightShield.setFocusable(false);
-        bottomRightShield.setOnTouchListener((v, event) -> true);
-        fullscreenContainer.addView(bottomRightShield);
-
-        // 4. Bottom-Center Untouch Shield: Recommendation Shelf / Drawer Card (Red Box Teaser)
-        FrameLayout.LayoutParams bottomCenterParams = new FrameLayout.LayoutParams(
-                (int) (190 * density),
-                (int) (52 * density)
-        );
-        bottomCenterParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
-
-        View bottomCenterShield = new View(this);
-        bottomCenterShield.setLayoutParams(bottomCenterParams);
-        bottomCenterShield.setBackgroundColor(Color.TRANSPARENT);
-        bottomCenterShield.setClickable(true);
-        bottomCenterShield.setFocusable(false);
-        bottomCenterShield.setOnTouchListener((v, event) -> true);
-        fullscreenContainer.addView(bottomCenterShield);
     }
 
     private void setupProgressBar() {

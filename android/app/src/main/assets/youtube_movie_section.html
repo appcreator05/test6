@@ -681,17 +681,16 @@
     .cinema-frame-box:fullscreen .untouch-shield-bottom,
     .cinema-frame-box:-webkit-full-screen .untouch-shield-bottom,
     .cinema-frame-box.is-fullscreen .untouch-shield-bottom {
-      height: 50px !important;
+      display: none !important;
+      height: 0px !important;
       pointer-events: none !important;
-      z-index: 1000000 !important;
     }
     .cinema-frame-box:fullscreen .untouch-shield-bottom-center,
     .cinema-frame-box:-webkit-full-screen .untouch-shield-bottom-center,
     .cinema-frame-box.is-fullscreen .untouch-shield-bottom-center {
-      width: 230px !important;
-      height: 54px !important;
-      z-index: 1000000 !important;
-      pointer-events: auto !important;
+      display: none !important;
+      height: 0px !important;
+      pointer-events: none !important;
     }
 
     @media (orientation: landscape) {
@@ -780,15 +779,14 @@
         z-index: 100000 !important;
       }
       .untouch-shield-bottom {
-        height: 50px !important;
+        display: none !important;
+        height: 0px !important;
         pointer-events: none !important;
-        z-index: 100000 !important;
       }
       .untouch-shield-bottom-center {
-        width: 230px !important;
-        height: 54px !important;
-        z-index: 100000 !important;
-        pointer-events: auto !important;
+        display: none !important;
+        height: 0px !important;
+        pointer-events: none !important;
       }
       .video-info-box,
       .more-shelf-title,
@@ -2005,11 +2003,37 @@
 
     document.addEventListener('fullscreenchange', () => {
       const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
-      setFullscreenMode(Boolean(fsEl));
+      const isFs = Boolean(fsEl);
+      if (isFs) {
+        const box = document.getElementById('cinemaFrameBox');
+        if (box && fsEl !== box) {
+          try {
+            if (box.requestFullscreen) {
+              box.requestFullscreen().catch(() => {});
+            } else if (box.webkitRequestFullscreen) {
+              box.webkitRequestFullscreen();
+            }
+          } catch {}
+        }
+      }
+      setFullscreenMode(isFs);
     });
     document.addEventListener('webkitfullscreenchange', () => {
       const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
-      setFullscreenMode(Boolean(fsEl));
+      const isFs = Boolean(fsEl);
+      if (isFs) {
+        const box = document.getElementById('cinemaFrameBox');
+        if (box && fsEl !== box) {
+          try {
+            if (box.webkitRequestFullscreen) {
+              box.webkitRequestFullscreen();
+            } else if (box.requestFullscreen) {
+              box.requestFullscreen().catch(() => {});
+            }
+          } catch {}
+        }
+      }
+      setFullscreenMode(isFs);
     });
 
     // Returns from player section to catalog section

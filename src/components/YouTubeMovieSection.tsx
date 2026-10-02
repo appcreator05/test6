@@ -304,6 +304,16 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
       const isFs = Boolean(fsEl);
       setIsPlayerFullscreen(isFs);
       if (isFs) {
+        const box = document.getElementById('cinema-player-box');
+        if (box && fsEl && fsEl !== box) {
+          try {
+            if (box.requestFullscreen) {
+              box.requestFullscreen().catch(() => {});
+            } else if ((box as any).webkitRequestFullscreen) {
+              (box as any).webkitRequestFullscreen();
+            }
+          } catch {}
+        }
         if ((window as any).AndroidStartApp?.setVideoFullscreen) {
           (window as any).AndroidStartApp.setVideoFullscreen(true);
         } else if ((window as any).Android?.setVideoFullscreen) {
@@ -901,71 +911,71 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
                   }}
                 />
 
-                {/* UNTOUCH SHIELD 2A: BOTTOM-LEFT CORNER (Link Icon) */}
-                <div
-                  className="absolute bottom-0 left-0 w-28 sm:w-32 h-[44px] sm:h-[48px] [&:fullscreen]:h-[50px] [&:-webkit-full-screen]:h-[50px] z-30 [&:fullscreen]:z-[999999] [&:-webkit-full-screen]:z-[999999] pointer-events-auto cursor-default select-none bg-transparent"
-                  title="Untouch Protected Area"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onTouchStart={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                  }}
-                />
+                {/* UNTOUCH SHIELDS: Only active in portrait/normal view, hidden in fullscreen so bottom is completely clean */}
+                {!isPlayerFullscreen && (
+                  <>
+                    {/* UNTOUCH SHIELD 2A: BOTTOM-LEFT CORNER (Link Icon) */}
+                    <div
+                      className="absolute bottom-0 left-0 w-28 sm:w-32 h-[44px] sm:h-[48px] z-30 pointer-events-auto cursor-default select-none bg-transparent"
+                      title="Untouch Protected Area"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onTouchStart={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                      }}
+                    />
 
-                {/* UNTOUCH SHIELD 2B: BOTTOM-RIGHT CORNER (YouTube Logo) */}
-                <div
-                  className="absolute bottom-0 right-0 w-32 sm:w-36 h-[44px] sm:h-[48px] [&:fullscreen]:h-[50px] [&:-webkit-full-screen]:h-[50px] z-30 [&:fullscreen]:z-[999999] [&:-webkit-full-screen]:z-[999999] pointer-events-auto cursor-default select-none bg-transparent"
-                  title="Untouch Protected Area"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onTouchStart={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                  }}
-                />
+                    {/* UNTOUCH SHIELD 2B: BOTTOM-RIGHT CORNER (YouTube Logo & Fullscreen Action) */}
+                    <div
+                      className="absolute bottom-0 right-0 w-32 sm:w-36 h-[44px] sm:h-[48px] z-30 pointer-events-auto cursor-pointer select-none bg-transparent"
+                      title="Fullscreen"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        togglePlayerFullscreen();
+                      }}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        togglePlayerFullscreen();
+                      }}
+                    />
 
-                {/* UNTOUCH SHIELD 2C: BOTTOM-CENTER TEASER (Recommendation Shelf / More Videos Card) */}
-                <div
-                  className="absolute bottom-0 left-1/2 -translate-x-1/2 w-48 sm:w-56 [&:fullscreen]:w-64 [&:-webkit-full-screen]:w-64 h-[46px] sm:h-[50px] [&:fullscreen]:h-[54px] [&:-webkit-full-screen]:h-[54px] z-30 [&:fullscreen]:z-[999999] [&:-webkit-full-screen]:z-[999999] pointer-events-auto cursor-default select-none bg-transparent"
-                  title="Untouch Protected Area"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onTouchStart={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                  }}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                  }}
-                />
+                    {/* UNTOUCH SHIELD 2C: BOTTOM-CENTER TEASER (Recommendation Shelf / More Videos Card) */}
+                    <div
+                      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-48 sm:w-56 h-[46px] sm:h-[50px] z-30 pointer-events-auto cursor-default select-none bg-transparent"
+                      title="Untouch Protected Area"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onTouchStart={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                      }}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                      }}
+                    />
+                  </>
+                )}
 
                 {/* Floating Exit Button during Fullscreen Mode */}
                 {isPlayerFullscreen && (
