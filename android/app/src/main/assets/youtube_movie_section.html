@@ -558,53 +558,79 @@
       cursor: default;
     }
 
-    /* UNTOUCH SHIELD 2: BOTTOM CORNERS (Link Icon at left, YouTube Logo at right) */
-    .untouch-shield-bottom {
+    /* INTERACTIVE SCREEN TOUCH OVERLAY & SLIDE-UP BOTTOM CONTROLS */
+    .video-touch-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 25;
+      cursor: pointer;
+      background: transparent;
+    }
+    .video-bottom-controls {
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
-      height: 46px;
       z-index: 35;
-      background: transparent;
-      pointer-events: none; /* Let center seekbar remain touchable */
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .video-bottom-controls.is-hidden {
+      transform: translateY(100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .video-controls-bar {
+      background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 70%, transparent 100%);
+      padding: 24px 12px 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
       user-select: none;
       -webkit-user-select: none;
-      cursor: default;
     }
-    .untouch-shield-bottom::before {
-      content: "";
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 120px;
-      height: 100%;
-      pointer-events: auto;
+    .controls-left, .controls-center, .controls-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .untouch-shield-bottom::after {
-      content: "";
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      width: 130px;
-      height: 100%;
-      pointer-events: auto;
+    .ctrl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: #252525;
+      color: #e2e8f0;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
     }
-
-    /* UNTOUCH SHIELD 3: BOTTOM-CENTER TEASER (Recommendation Shelf / Drawer Card) */
-    .untouch-shield-bottom-center {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 190px;
-      height: 48px;
-      z-index: 36;
-      background: transparent;
-      pointer-events: auto;
-      user-select: none;
-      -webkit-user-select: none;
-      cursor: default;
+    .ctrl-play-btn {
+      background: #dc2626;
+      border-color: rgba(239, 68, 68, 0.5);
+      color: #ffffff;
+    }
+    .ctrl-autonext-btn.is-on {
+      background: #059669;
+      border-color: rgba(52, 211, 153, 0.5);
+      color: #ffffff;
+    }
+    .ctrl-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #ffffff;
     }
 
     /* FULLSCREEN & LANDSCAPE UNTOUCH SYSTEM EXTENSIONS */
@@ -1392,12 +1418,13 @@
       </button>
 
       <div class="player-header-right">
-        <button class="top-landscape-btn" id="landscapeToggleBtn" onclick="toggleLandscapeOrientation()" title="Rotate to Fullscreen Landscape">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="6" width="20" height="12" rx="2"></rect>
-            <circle cx="12" cy="12" r="1.5"></circle>
+        <button class="top-landscape-btn" id="landscapeToggleBtn" onclick="toggleLandscapeOrientation()" title="Toggle Fullscreen" style="padding: 8px 10px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3"></path>
+            <path d="M21 8V5a2 2 0 0 0-2-2h-3"></path>
+            <path d="M3 16v3a2 2 0 0 0 2 2h3"></path>
+            <path d="M16 21h3a2 2 0 0 0 2-2v-3"></path>
           </svg>
-          <span id="landscapeBtnText">Landscape</span>
         </button>
       </div>
     </div>
@@ -1410,7 +1437,6 @@
           <iframe
             id="playerIframe"
             src=""
-            allowfullscreen
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             referrerpolicy="strict-origin-when-cross-origin">
           </iframe>
@@ -1418,11 +1444,35 @@
           <!-- UNTOUCH SHIELD 1: TOP-LEFT AREA (Avatar, Title, Channel Name, Speaker Icon) -->
           <div class="untouch-shield-top-left" id="untouchTopLeft" title="Untouch Protected Area"></div>
 
-          <!-- UNTOUCH SHIELD 2: BOTTOM BAR (Link Icon, Carousel Shelf, YouTube Logo) -->
-          <div class="untouch-shield-bottom" id="untouchBottom" title="Untouch Protected Area"></div>
+          <!-- Screen Touch Area: Touch to show/hide controls with 5s timer -->
+          <div class="video-touch-overlay" id="videoTouchOverlay" onclick="handleVideoScreenTouch()"></div>
 
-          <!-- UNTOUCH SHIELD 3: BOTTOM-CENTER TEASER (Recommendation Shelf / Drawer Card) -->
-          <div class="untouch-shield-bottom-center" id="untouchBottomCenter" title="Untouch Protected Area"></div>
+          <!-- Slide-up Bottom Control Layout -->
+          <div class="video-bottom-controls" id="videoBottomControls">
+            <div class="video-controls-bar">
+              <div class="controls-left">
+                <button type="button" class="ctrl-btn ctrl-play-btn" id="ctrlPlayPauseBtn" onclick="togglePlayPauseVideo(event)" title="Play / Pause">
+                  <span id="ctrlPlayText">Pause</span>
+                </button>
+                <button type="button" class="ctrl-btn" id="ctrlNextBtn" onclick="playNextVideoFromCatalog(event)" title="Next Movie">
+                  <span>Next ⏭</span>
+                </button>
+              </div>
+
+              <div class="controls-center">
+                <button type="button" class="ctrl-btn ctrl-autonext-btn is-on" id="ctrlAutoNextBtn" onclick="toggleAutoNextVideo(event)" title="Auto Next Movie">
+                  <span class="ctrl-dot"></span>
+                  <span id="ctrlAutoNextText">Auto Next: ON</span>
+                </button>
+              </div>
+
+              <div class="controls-right">
+                <button type="button" class="ctrl-btn" style="background:#1e293b;border-color:rgba(56,189,248,0.3);color:#38bdf8;" onclick="toggleLandscapeOrientation(event)" title="Toggle Fullscreen">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;display:inline-block;" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1913,6 +1963,100 @@
       }
     }, { passive: true });
 
+    let isVideoPlayingState = true;
+    let isAutoNextState = true;
+    let controlsTimer = null;
+
+    function resetControlsTimer() {
+      const controls = document.getElementById('videoBottomControls');
+      if (controls) {
+        controls.classList.remove('is-hidden');
+      }
+      if (controlsTimer) {
+        clearTimeout(controlsTimer);
+      }
+      controlsTimer = setTimeout(() => {
+        if (controls) {
+          controls.classList.add('is-hidden');
+        }
+      }, 5000);
+    }
+
+    function handleVideoScreenTouch() {
+      const controls = document.getElementById('videoBottomControls');
+      if (!controls) return;
+      if (controls.classList.contains('is-hidden')) {
+        resetControlsTimer();
+      } else {
+        controls.classList.add('is-hidden');
+        if (controlsTimer) clearTimeout(controlsTimer);
+      }
+    }
+
+    function togglePlayPauseVideo(e) {
+      if (e) e.stopPropagation();
+      isVideoPlayingState = !isVideoPlayingState;
+      const iframe = document.getElementById('playerIframe');
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage(
+          JSON.stringify({
+            event: 'command',
+            func: isVideoPlayingState ? 'playVideo' : 'pauseVideo',
+            args: []
+          }),
+          '*'
+        );
+      }
+      const text = document.getElementById('ctrlPlayText');
+      if (text) text.textContent = isVideoPlayingState ? 'Pause' : 'Play';
+      resetControlsTimer();
+    }
+
+    function toggleAutoNextVideo(e) {
+      if (e) e.stopPropagation();
+      isAutoNextState = !isAutoNextState;
+      const btn = document.getElementById('ctrlAutoNextBtn');
+      const text = document.getElementById('ctrlAutoNextText');
+      if (btn) {
+        btn.classList.toggle('is-on', isAutoNextState);
+      }
+      if (text) {
+        text.textContent = 'Auto Next: ' + (isAutoNextState ? 'ON' : 'OFF');
+      }
+      resetControlsTimer();
+    }
+
+    function playNextVideoFromCatalog(e) {
+      if (e) e.stopPropagation();
+      if (!currentPlayingMovie || allMovies.length === 0) return;
+      const idx = allMovies.findIndex(m => m.id === currentPlayingMovie.id);
+      const nextIdx = (idx + 1) % allMovies.length;
+      openPlayerSection(allMovies[nextIdx]);
+      resetControlsTimer();
+    }
+
+    window.addEventListener('message', (event) => {
+      try {
+        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        if (data && data.event === 'onStateChange') {
+          if (data.info === 1) {
+            isVideoPlayingState = true;
+            const playText = document.getElementById('ctrlPlayText');
+            if (playText) playText.textContent = 'Pause';
+          } else if (data.info === 2) {
+            isVideoPlayingState = false;
+            const playText = document.getElementById('ctrlPlayText');
+            if (playText) playText.textContent = 'Play';
+          } else if (data.info === 0) {
+            isVideoPlayingState = false;
+            if (isAutoNextState) {
+              playNextVideoFromCatalog();
+            }
+          }
+        }
+      } catch {}
+    });
+
     // Opens the dedicated player section
     function openPlayerSection(movie) {
       currentPlayingMovie = movie;
@@ -1931,10 +2075,15 @@
       document.getElementById('playerChannelAvatar').textContent = (movie.channel || 'R').charAt(0).toUpperCase();
       document.getElementById('playerVideoStats').textContent = (movie.views || '') + ' • ' + (movie.published || 'Full HD');
 
-      // 3. Load video into clean iframe with youtube-nocookie and origin to eliminate Error 152 / 153
+      // 3. Load video into clean iframe with youtube-nocookie, origin & fs=0 to remove YouTube native fullscreen
       const iframe = document.getElementById('playerIframe');
       const origin = (window.location.origin && window.location.origin !== 'null') ? window.location.origin : 'https://hdskay.blogspot.com';
-      iframe.src = `https://www.youtube-nocookie.com/embed/${movie.id}?autoplay=1&playsinline=1&rel=0&enablejsapi=1&origin=${encodeURIComponent(origin)}&widget_referrer=${encodeURIComponent(origin)}`;
+      iframe.src = `https://www.youtube-nocookie.com/embed/${movie.id}?autoplay=1&playsinline=1&rel=0&enablejsapi=1&fs=0&origin=${encodeURIComponent(origin)}&widget_referrer=${encodeURIComponent(origin)}`;
+
+      isVideoPlayingState = true;
+      const playText = document.getElementById('ctrlPlayText');
+      if (playText) playText.textContent = 'Pause';
+      resetControlsTimer();
 
       // 4. Render actor/channel recommendations (avoiding duplicate uploads of same movie)
       fetchAndRenderRecommendations(movie);
@@ -1974,6 +2123,8 @@
         document.documentElement.scrollTop = 0;
         document.body.scrollTop = 0;
         if (btnText) btnText.textContent = 'Portrait';
+        const btmText = document.getElementById('videoBottomLandscapeText');
+        if (btmText) btmText.textContent = 'Portrait';
         if (box) box.classList.add('is-fullscreen');
         if (window.AndroidStartApp && typeof window.AndroidStartApp.setVideoFullscreen === 'function') {
           window.AndroidStartApp.setVideoFullscreen(true);
@@ -1988,6 +2139,8 @@
         document.documentElement.classList.remove('is-fullscreen-mode');
         document.body.classList.remove('is-fullscreen-mode');
         if (btnText) btnText.textContent = 'Landscape';
+        const btmText = document.getElementById('videoBottomLandscapeText');
+        if (btmText) btmText.textContent = 'Landscape';
         if (box) box.classList.remove('is-fullscreen');
         if (window.AndroidStartApp && typeof window.AndroidStartApp.setVideoFullscreen === 'function') {
           window.AndroidStartApp.setVideoFullscreen(false);

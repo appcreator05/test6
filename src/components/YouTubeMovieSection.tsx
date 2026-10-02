@@ -3,6 +3,8 @@ import {
   X,
   Search,
   Play,
+  Pause,
+  SkipForward,
   RotateCcw,
   ChevronLeft,
   Film,
@@ -296,6 +298,98 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
   // Selected video for the dedicated Player view (when clicked, player opens in this separate section)
   const [selectedVideo, setSelectedVideo] = useState<RealYouTubeVideo | null>(null);
   const [isPlayerFullscreen, setIsPlayerFullscreen] = useState<boolean>(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(true);
+  const [isAutoNext, setIsAutoNext] = useState<boolean>(true);
+  const [showControls, setShowControls] = useState<boolean>(true);
+  const controlsTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const resetControlsTimer = () => {
+    setShowControls(true);
+    if (controlsTimerRef.current) {
+      clearTimeout(controlsTimerRef.current);
+    }
+    controlsTimerRef.current = setTimeout(() => {
+      setShowControls(false);
+    }, 5000);
+  };
+
+  const handleScreenTap = () => {
+    if (showControls) {
+      setShowControls(false);
+      if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current);
+    } else {
+      resetControlsTimer();
+    }
+  };
+
+  const togglePlayPause = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    const next = !isVideoPlaying;
+    setIsVideoPlaying(next);
+    const iframe = document.getElementById('youtube-player-frame') as HTMLIFrameElement;
+    if (iframe?.contentWindow) {
+      iframe.contentWindow.postMessage(
+        JSON.stringify({
+          event: 'command',
+          func: next ? 'playVideo' : 'pauseVideo',
+          args: []
+        }),
+        '*'
+      );
+    }
+    resetControlsTimer();
+  };
+
+  const handlePlayNextVideo = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    if (!selectedVideo || videos.length === 0) return;
+    const currentIndex = videos.findIndex((v) => v.id === selectedVideo.id);
+    const nextIndex = (currentIndex + 1) % videos.length;
+    setSelectedVideo(videos[nextIndex]);
+    setIsVideoPlaying(true);
+    resetControlsTimer();
+  };
+
+  // Auto-hide controls timer and listen for YouTube embed player events (ended / play / pause)
+  useEffect(() => {
+    if (selectedVideo) {
+      setIsVideoPlaying(true);
+      resetControlsTimer();
+    }
+    return () => {
+      if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current);
+    };
+  }, [selectedVideo]);
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      try {
+        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        if (data && data.event === 'onStateChange') {
+          // 1 = playing, 2 = paused, 0 = ended
+          if (data.info === 1) {
+            setIsVideoPlaying(true);
+          } else if (data.info === 2) {
+            setIsVideoPlaying(false);
+          } else if (data.info === 0) {
+            setIsVideoPlaying(false);
+            if (isAutoNext) {
+              handlePlayNextVideo();
+            }
+          }
+        }
+      } catch {}
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [isAutoNext, selectedVideo, videos]);
 
   // Synchronize Fullscreen state with Device Orientation and YouTube Embed events
   useEffect(() => {
@@ -785,16 +879,8 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
           </span>
         </div>
 
-        {/* Right: Quick live filter chips + AI Video Animator */}
+        {/* Right: Quick live filter chips */}
         <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto py-0.5">
-          <button
-            type="button"
-            onClick={() => (window as any).openAiVideoAnimator?.()}
-            className="px-3 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white border border-purple-400/40 shadow-sm flex items-center gap-1 shrink-0"
-            title="Create Free AI Animated Videos from Images"
-          >
-            <span>✨ AI Video Animator</span>
-          </button>
           {QUICK_FILTERS.map((filter) => {
             const isSelected = searchQuery.trim().toLowerCase() === filter.query.toLowerCase();
             return (
@@ -844,11 +930,10 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
                 <button
                   type="button"
                   onClick={togglePlayerFullscreen}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1e293b] hover:bg-[#334155] active:scale-95 text-sky-400 font-bold text-xs rounded-full border border-sky-500/30 transition-all cursor-pointer shadow-sm"
-                  title="Toggle Fullscreen"
+                  className="flex items-center justify-center p-2 bg-[#1e293b] hover:bg-[#334155] active:scale-95 text-sky-400 font-bold rounded-full border border-sky-500/30 transition-all cursor-pointer shadow-sm"
+                  title={isPlayerFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
                 >
-                  <Maximize className="w-3.5 h-3.5" />
-                  <span>{isPlayerFullscreen ? 'Exit Fullscreen' : 'Landscape'}</span>
+                  <Maximize className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -866,15 +951,14 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
               >
                 {/* Cinema Stage - Fills container perfectly with zero shift */}
                 <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
-                {/* Official YouTube Embed with youtube-nocookie, origin & strict-origin-when-cross-origin to eliminate Error 152 / 153 */}
+                {/* Official YouTube Embed with fs=0 to remove YouTube's native fullscreen button */}
                 <iframe
                   key={selectedVideo.id}
                   id="youtube-player-frame"
-                  src={`https://www.youtube-nocookie.com/embed/${selectedVideo.id}?autoplay=1&playsinline=1&rel=0&enablejsapi=1&origin=${encodeURIComponent(typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://hdskay.blogspot.com')}&widget_referrer=${encodeURIComponent(typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://hdskay.blogspot.com')}`}
+                  src={`https://www.youtube-nocookie.com/embed/${selectedVideo.id}?autoplay=1&playsinline=1&rel=0&enablejsapi=1&fs=0&origin=${encodeURIComponent(typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://hdskay.blogspot.com')}&widget_referrer=${encodeURIComponent(typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://hdskay.blogspot.com')}`}
                   title={selectedVideo.title}
                   className="w-full h-full absolute inset-0 m-auto border-none block"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
                   referrerPolicy="strict-origin-when-cross-origin"
                   onLoad={(e) => {
                     try {
@@ -911,71 +995,117 @@ export const YouTubeMovieSection: React.FC<YouTubeMovieSectionProps> = ({
                   }}
                 />
 
-                {/* UNTOUCH SHIELDS: Only active in portrait/normal view, hidden in fullscreen so bottom is completely clean */}
-                {!isPlayerFullscreen && (
-                  <>
-                    {/* UNTOUCH SHIELD 2A: BOTTOM-LEFT CORNER (Link Icon) */}
-                    <div
-                      className="absolute bottom-0 left-0 w-28 sm:w-32 h-[44px] sm:h-[48px] z-30 pointer-events-auto cursor-default select-none bg-transparent"
-                      title="Untouch Protected Area"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      onTouchStart={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      onTouchEnd={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                      }}
-                    />
+                {/* Interactive Touch Area: Tapping video screen brings up the bottom controls (auto-hides after 5s) */}
+                <div
+                  className="absolute inset-0 z-20 cursor-pointer"
+                  onClick={handleScreenTap}
+                  onTouchStart={resetControlsTimer}
+                  onMouseMove={resetControlsTimer}
+                />
 
-                    {/* UNTOUCH SHIELD 2B: BOTTOM-RIGHT CORNER (YouTube Logo & Fullscreen Action) */}
-                    <div
-                      className="absolute bottom-0 right-0 w-32 sm:w-36 h-[44px] sm:h-[48px] z-30 pointer-events-auto cursor-pointer select-none bg-transparent"
-                      title="Fullscreen"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        togglePlayerFullscreen();
-                      }}
-                      onTouchEnd={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        togglePlayerFullscreen();
-                      }}
-                    />
+                {/* SLIDE-UP BOTTOM CONTROL LAYOUT: Play/Pause, Auto Next, and Landscape Fullscreen button */}
+                <div
+                  className={`absolute bottom-0 left-0 right-0 z-30 transition-all duration-300 ease-out transform ${
+                    showControls
+                      ? 'translate-y-0 opacity-100 pointer-events-auto'
+                      : 'translate-y-full opacity-0 pointer-events-none'
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    resetControlsTimer();
+                  }}
+                  onTouchStart={(e) => {
+                    e.stopPropagation();
+                    resetControlsTimer();
+                  }}
+                >
+                  <div className="bg-gradient-to-t from-black/95 via-black/85 to-transparent pt-8 pb-3 px-3 sm:px-6 flex items-center justify-between gap-2 backdrop-blur-xs select-none">
+                    {/* Left: Play/Pause + Next Video */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={togglePlayPause}
+                        className="flex items-center gap-1.5 px-3.5 py-1.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold text-xs rounded-full shadow-lg transition-all cursor-pointer border border-red-500/50"
+                        title={isVideoPlaying ? 'Pause Video' : 'Play Video'}
+                      >
+                        {isVideoPlaying ? (
+                          <>
+                            <Pause className="w-3.5 h-3.5 fill-white" />
+                            <span>Pause</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-3.5 h-3.5 fill-white" />
+                            <span>Play</span>
+                          </>
+                        )}
+                      </button>
 
-                    {/* UNTOUCH SHIELD 2C: BOTTOM-CENTER TEASER (Recommendation Shelf / More Videos Card) */}
-                    <div
-                      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-48 sm:w-56 h-[46px] sm:h-[50px] z-30 pointer-events-auto cursor-default select-none bg-transparent"
-                      title="Untouch Protected Area"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      onTouchStart={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      onTouchEnd={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                      }}
-                      onContextMenu={(e) => {
-                        e.preventDefault();
-                      }}
-                    />
-                  </>
-                )}
+                      <button
+                        type="button"
+                        onClick={handlePlayNextVideo}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#252525] hover:bg-[#333333] active:scale-95 text-slate-200 hover:text-white font-semibold text-xs rounded-full border border-[#3d3d3d] transition-all cursor-pointer shadow-sm"
+                        title="Play Next Movie"
+                      >
+                        <SkipForward className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Next</span>
+                      </button>
+                    </div>
+
+                    {/* Center: Auto Next Toggle Button */}
+                    <div className="flex items-center shrink-0">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsAutoNext(!isAutoNext);
+                          resetControlsTimer();
+                        }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold text-xs transition-all cursor-pointer border shadow-sm whitespace-nowrap shrink-0 ${
+                          isAutoNext
+                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-400/50'
+                            : 'bg-[#252525] hover:bg-[#333333] text-slate-400 border-[#3d3d3d]'
+                        }`}
+                        title="Toggle Auto Next Movie"
+                      >
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${isAutoNext ? 'bg-white animate-pulse' : 'bg-slate-500'}`} />
+                        <span className="whitespace-nowrap">Auto Next: {isAutoNext ? 'ON' : 'OFF'}</span>
+                      </button>
+                    </div>
+
+                    {/* Right: Fullscreen icon only (without Landscape text) */}
+                    <div className="flex items-center shrink-0">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          togglePlayerFullscreen();
+                        }}
+                        className="flex items-center justify-center p-2 sm:px-2.5 sm:py-2 bg-[#1e293b] hover:bg-[#334155] active:scale-95 text-sky-400 font-bold rounded-full border border-sky-500/30 transition-all cursor-pointer shadow-sm shrink-0"
+                        title={isPlayerFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="lucide lucide-maximize w-4 h-4"
+                          aria-hidden="true"
+                        >
+                          <path d="M8 3H5a2 2 0 0 0-2 2v3"></path>
+                          <path d="M21 8V5a2 2 0 0 0-2-2h-3"></path>
+                          <path d="M3 16v3a2 2 0 0 0 2 2h3"></path>
+                          <path d="M16 21h3a2 2 0 0 0 2-2v-3"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Floating Exit Button during Fullscreen Mode */}
                 {isPlayerFullscreen && (

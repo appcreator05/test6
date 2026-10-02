@@ -4,7 +4,6 @@ import { StartIoInterstitial } from './components/StartIoInterstitial';
 import { NoInternetPopup } from './components/NoInternetPopup';
 import { CustomTabModal } from './components/CustomTabModal';
 import { YouTubeMovieSection } from './components/YouTubeMovieSection';
-import { AiVideoAnimator } from './components/AiVideoAnimator';
 import { Maximize2, Minimize2, WifiOff, Sparkles } from 'lucide-react';
 
 const START_IO_APP_ID = '203877183';
@@ -31,12 +30,8 @@ export default function App() {
   // YouTube Movie Section modal state
   const [showYouTubeSection, setShowYouTubeSection] = useState<boolean>(false);
 
-  // Free AI Video Animator modal state
-  const [showAiVideoAnimator, setShowAiVideoAnimator] = useState<boolean>(false);
-
   const navigateToSubscriptionPage = () => {
     setShowYouTubeSection(false);
-    setShowAiVideoAnimator(false);
     setCustomTabUrl(null);
     setShowRewarded(false);
     setShowSplash(false);
@@ -45,20 +40,13 @@ export default function App() {
     );
   };
 
-  // Expose global openYouTubeMovieSection & openAiVideoAnimator on window for any inline code/call & global click delegation
+  // Expose global openYouTubeMovieSection on window for any inline code/call & global click delegation
   useEffect(() => {
     window.openYouTubeMovieSection = () => {
       setCustomTabUrl(null);
       setShowRewarded(false);
       setShowSplash(false);
       setShowYouTubeSection(true);
-    };
-
-    (window as any).openAiVideoAnimator = () => {
-      setCustomTabUrl(null);
-      setShowRewarded(false);
-      setShowSplash(false);
-      setShowAiVideoAnimator(true);
     };
 
     (window as any).openSubscriptionPage = () => {
@@ -85,16 +73,6 @@ export default function App() {
         setShowRewarded(false);
         setShowSplash(false);
         setShowYouTubeSection(true);
-      } else if (
-        onclickAttr.includes('openAiVideoAnimator') ||
-        text.includes('AI Video Animator') ||
-        id === 'ai-video-animator-btn' ||
-        dataAction === 'openAiVideoAnimator'
-      ) {
-        setCustomTabUrl(null);
-        setShowRewarded(false);
-        setShowSplash(false);
-        setShowAiVideoAnimator(true);
       }
     };
 
@@ -102,7 +80,6 @@ export default function App() {
 
     return () => {
       window.openYouTubeMovieSection = undefined;
-      (window as any).openAiVideoAnimator = undefined;
       document.removeEventListener('click', handleGlobalClick, true);
     };
   }, []);
@@ -391,12 +368,6 @@ export default function App() {
         isOpen={showYouTubeSection}
         onClose={() => setShowYouTubeSection(false)}
         onNavigateToSubscription={navigateToSubscriptionPage}
-      />
-
-      {/* Free AI Image-to-Video Animator Modal */}
-      <AiVideoAnimator
-        isOpen={showAiVideoAnimator}
-        onClose={() => setShowAiVideoAnimator(false)}
       />
 
       {/* Custom "No Internet Connection" Popup Modal */}
